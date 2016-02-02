@@ -3,3 +3,4 @@ log/*.log
 tmp
 *.db
 rehook-*.tar.gz
+*.swp
