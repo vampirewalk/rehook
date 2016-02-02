@@ -30,16 +30,20 @@ func (h AdminHandler) Index(w http.ResponseWriter, r *http.Request, _ httprouter
 // NewHook renders the new hook form.
 func (h AdminHandler) NewHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	data := struct {
-		ID  string
-		Err string
-	}{r.URL.Query().Get("id"), r.URL.Query().Get("err")}
+		ID   string
+		User string
+		Repo string
+		Err  string
+	}{r.URL.Query().Get("id"), r.URL.Query().Get("username"), r.URL.Query().Get("reponame"), r.URL.Query().Get("err")}
 	render(w, data, "hooks/new")
 }
 
 // CreateHook handles POST requests from the new hook form.
 func (h AdminHandler) CreateHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	id := r.FormValue("id")
-	hook := Hook{ID: id}
+	user := r.FormValue("username")
+	repo := r.FormValue("reponame")
+	hook := Hook{ID: id, User: user, Repo: repo}
 	if err := h.hooks.Create(hook); err != nil {
 		log.Printf("error creating hook: %s", err)
 		// TODO: maybe use sessions for flash messages etc

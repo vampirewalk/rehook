@@ -29,6 +29,8 @@ type Hook struct {
 	ID         string // unique hook identifier
 	Count      Count  // request counts
 	Components []HookComponent
+	User       string
+	Repo       string
 }
 
 // List returns a list of all hooks.
