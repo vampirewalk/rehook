@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"log"
@@ -157,19 +155,6 @@ func increment(key []byte, b *bolt.Bucket) (err error) {
 		return err
 	}
 	return b.Put(key, v)
-}
-
-func gobEncode(v interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(v)
-	return buf.Bytes(), err
-}
-
-func gobDecode(p []byte, v interface{}) error {
-	if len(p) == 0 {
-		return nil
-	}
-	return gob.NewDecoder(bytes.NewBuffer(p)).Decode(v)
 }
 
 // AddComponent adds component c to hook h, initializing it with the given
