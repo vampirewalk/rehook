@@ -25,7 +25,6 @@ func (i IssueAPI) ListIssues(user, repo string) ([]github.Issue, error) {
 		log.Println("querying github for issues: page", opts.ListOptions.Page)
 		iss, resp, err := client.Issues.ListByRepo(user, repo, opts)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 
@@ -52,7 +51,6 @@ func (i IssueAPI) ListIssueEvents(user, repo string, issueNum int) ([]github.Iss
 	for {
 		events, resp, err := client.Issues.ListIssueEvents(user, repo, issueNum, opts)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 
