@@ -58,7 +58,7 @@ func (s *HookStore) Find(id string) (h *Hook, err error) {
 			return errors.New("hook does not exist")
 		}
 		h = &Hook{ID: id}
-		b := tx.Bucket(BucketHooks)
+		b := tx.Bucket(BucketHookData)
 		h.User = string(b.Get([]byte(h.ID + "_user")))
 		h.Repo = string(b.Get([]byte(h.ID + "_repo")))
 		return gobDecode(v, &h.Components)
@@ -85,8 +85,13 @@ func (s *HookStore) Create(h Hook) error {
 			return errors.New("a hook with that id already exists")
 		}
 		b.Put([]byte(h.ID), nil)
+		b, err := tx.CreateBucketIfNotExists(BucketHookData)
+		if err != nil {
+			return err
+		}
 		b.Put([]byte(h.ID+"_user"), []byte(h.User))
 		b.Put([]byte(h.ID+"_repo"), []byte(h.Repo))
+		log.Printf("Create hook id: %s, user: %s, repo: %s", h.ID, h.User, h.Repo)
 		return nil
 	})
 }
