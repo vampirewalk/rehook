@@ -1,20 +1,35 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 const paginage = false
 
 type IssueAPI struct {
+	Client *github.Client
+}
+
+func NewIssueAPI() *IssueAPI {
+	token, err := queryToken("Github_Token", "vampirewalk")
+	if err != nil {
+		client := github.NewClient(nil)
+		return &IssueAPI{Client: client}
+	}
+
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(oauth2.NoContext, ts)
+	client := github.NewClient(tc)
+
+	return &IssueAPI{Client: client}
 }
 
 func (i IssueAPI) ListIssues(user, repo string) ([]github.Issue, error) {
-	client := github.NewClient(nil)
-
 	opts := &github.IssueListByRepoOptions{
 		Sort: "created",
 	}
@@ -23,16 +38,16 @@ func (i IssueAPI) ListIssues(user, repo string) ([]github.Issue, error) {
 
 	for {
 		log.Println("querying github for issues: page", opts.ListOptions.Page)
-		iss, resp, err := client.Issues.ListByRepo(user, repo, opts)
+		iss, resp, err := i.Client.Issues.ListByRepo(user, repo, opts)
 		if err != nil {
 			return nil, err
 		}
 
 		allIssues = append(allIssues, iss...)
 
-		for _, i := range iss {
+		/*for _, i := range iss {
 			fmt.Println(i)
-		}
+		}*/
 		if !paginage || resp.NextPage == 0 {
 			break
 		}
@@ -42,23 +57,21 @@ func (i IssueAPI) ListIssues(user, repo string) ([]github.Issue, error) {
 }
 
 func (i IssueAPI) ListIssueEvents(user, repo string, issueNum int) ([]github.IssueEvent, error) {
-	client := github.NewClient(nil)
-
 	opts := &github.ListOptions{Page: 0}
 
 	allEvents := make([]github.IssueEvent, 0)
 
 	for {
-		events, resp, err := client.Issues.ListIssueEvents(user, repo, issueNum, opts)
+		events, resp, err := i.Client.Issues.ListIssueEvents(user, repo, issueNum, opts)
 		if err != nil {
 			return nil, err
 		}
 
 		allEvents = append(allEvents, events...)
 
-		for _, e := range events {
+		/*for _, e := range events {
 			fmt.Println(e)
-		}
+		}*/
 		if !paginage || resp.NextPage == 0 {
 			break
 		}
