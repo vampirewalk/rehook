@@ -27,6 +27,13 @@ var (
 	BucketHooks      = []byte("hooks")
 	BucketComponents = []byte("components")
 	BucketStats      = []byte("stats")
+	BucketHookData   = []byte("hookdata")
+	BucketIssue      = []byte("Issue")
+	BucketEvent      = []byte("Event")
+)
+
+var (
+	Interval = time.Second * 30
 )
 
 func main() {
@@ -56,8 +63,14 @@ func main() {
 		log.Print(http.ListenAndServe(*listenAddr, router))
 	}()
 
+	hooks, err := hookStore.List()
+	if err != nil {
+		log.Fatal("Fail to load hooks")
+	}
+	ist := NewIssueStatusTracker(NewIssueAPI(), hooks, db)
+
 	// admin interface
-	ah := &AdminHandler{hookStore}
+	ah := &AdminHandler{hooks: hookStore, ist: ist}
 	arouter := httprouter.New()
 	arouter.Handler("GET", "/public/*path", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
 	arouter.GET("/", ah.Index)
@@ -73,8 +86,13 @@ func main() {
 	arouter.GET("/hooks/edit/:id/edit/:c", ah.EditComponent)
 	arouter.POST("/hooks/edit/:id/update/:c", ah.UpdateComponent)
 
-	log.Printf("Admin interface on %s", *adminAddr)
-	log.Print(http.ListenAndServe(*adminAddr, arouter))
+	go func() {
+		log.Printf("Admin interface on %s", *adminAddr)
+		log.Print(http.ListenAndServe(*adminAddr, arouter))
+	}()
+
+	ist.RefreshIssues()
+	ist.StartPolling()
 }
 
 func initBuckets(t *bolt.Tx) error {

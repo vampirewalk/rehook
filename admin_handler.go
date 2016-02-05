@@ -14,6 +14,7 @@ import (
 // AdminHandler handles requests for the admin web interface.
 type AdminHandler struct {
 	hooks *HookStore
+	ist   *IssueStatusTracker
 }
 
 // Index renders the main page that shows a list of hooks.
@@ -50,6 +51,7 @@ func (h AdminHandler) CreateHook(w http.ResponseWriter, r *http.Request, _ httpr
 		http.Redirect(w, r, fmt.Sprintf("/hooks/new?id=%s&err=%s", url.QueryEscape(id), url.QueryEscape(err.Error())), http.StatusSeeOther)
 		return
 	}
+	h.ist.AddHook(&hook)
 	http.Redirect(w, r, fmt.Sprintf("/hooks/edit/%s", hook.ID), http.StatusSeeOther)
 }
 
@@ -73,6 +75,13 @@ func (h AdminHandler) EditHook(w http.ResponseWriter, r *http.Request, p httprou
 // UpdateHook handles POST requests from the edit page.
 func (h AdminHandler) UpdateHook(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if r.FormValue("action") == "delete" {
+		hook, err := h.hooks.Find(p.ByName("id"))
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		h.ist.DeleteHook(hook)
+
 		if err := h.hooks.Delete(p.ByName("id")); err != nil {
 			http.NotFound(w, r)
 			return
