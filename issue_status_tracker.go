@@ -21,7 +21,7 @@ type IssueStatusTracker struct {
 }
 
 func NewIssueStatusTracker(api *IssueAPI, hooks []Hook, db *bolt.DB) *IssueStatusTracker {
-	return &IssueStatusTracker{API: NewIssueAPI(), Hooks: hooks, DB: db, Ticker: time.NewTicker(Interval), Add: make(chan Hook)}
+	return &IssueStatusTracker{API: NewIssueAPI(), Hooks: hooks, DB: db, Ticker: time.NewTicker(Interval), Add: make(chan Hook), Delete: make(chan Hook)}
 }
 
 func (i *IssueStatusTracker) RefreshIssues() error {
