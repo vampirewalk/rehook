@@ -41,8 +41,6 @@ func (i *IssueStatusTracker) RefreshIssues() error {
 		for _, hook := range i.Hooks {
 			user := string(hb.Get([]byte(hook.ID + "_user")))
 			repo := string(hb.Get([]byte(hook.ID + "_repo")))
-			log.Printf("user: " + hook.User)
-			log.Printf("repo: " + hook.Repo)
 			issues, err := i.API.ListIssues(user, repo)
 			if err != nil {
 				return err
